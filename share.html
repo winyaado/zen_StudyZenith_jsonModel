@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<!--
+  初学者向けガイド（share.html）
+  ------------------------------------------------------------
+  このページは「閲覧専用ビュー」です。共有 URL から渡されたデータを表示するだけで、
+  編集はできません。
+  - statusTab: 卒業要件の達成状況を表示（選択済み科目に基づく）
+  - coursesTab: 科目コードをカテゴリごとに一覧表示
+  - exportTab: 科目コードをテキストでダウンロード
+  - JS モジュール: share.js（URL 解析）、render.js（要件表示）、requirements.js（要件読込）、tabs.js（タブ切替）
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>選択内容の共有（閲覧専用）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body class="p-4 md:p-8">
+  <div class="container mx-auto max-w-5xl">
+    <header class="mb-6 text-center">
+      <h1 class="text-2xl font-bold text-gray-800">学習管理ページ（閲覧専用）</h1>
+      <p class="text-sm text-gray-600 mt-2">このページでは共有された講義選択とコメントを閲覧できます。</p>
+    </header>
+    <!-- タブの見出し（閲覧専用の切り替え） -->
+    <div class="mb-6 border-b border-gray-300">
+      <nav class="flex flex-wrap" aria-label="Tabs">
+        <button class="tab-button active" data-tab="statusTab">達成状況</button>
+        <button class="tab-button" data-tab="coursesTab">講義一覧</button>
+        <button class="tab-button" data-tab="exportTab">エクスポート</button>
+      </nav>
+    </div>
+
+    <!-- 達成状況: 共有された科目に基づく要件チェックの概要 -->
+    <div id="statusTab" class="tab-content">
+      <div class="card">
+        <div class="mb-4">
+          <div class="text-sm text-gray-500">タイトル</div>
+          <div id="shareTitle" class="text-lg font-semibold text-gray-800 break-words"></div>
+        </div>
+        <div class="mb-4">
+          <div class="text-sm text-gray-500">コメント</div>
+          <div id="shareComment" class="whitespace-pre-wrap text-gray-700 break-words"></div>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-2">卒業要件達成状況（閲覧）</h2>
+        <p class="text-sm text-gray-600 mb-3">共有された選択内容に基づく達成状況です。要件定義は公開設定に依存します。</p>
+        <div id="graduationStatus" class="space-y-4"></div>
+      </div>
+    </div>
+
+    <!-- 講義一覧: 共有コードをカテゴリごとに表示（share.js で分類） -->
+    <div id="coursesTab" class="tab-content hidden">
+      <div class="card">
+        <h2 class="text-xl font-semibold text-gray-700 mb-2">講義一覧（分類別）</h2>
+        <p class="text-sm text-gray-600 mb-3">プレフィックス（日本語ラベル）ごとに分類して表示します。</p>
+        <div id="groupsWrap" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        <div id="shareNotice" class="text-xs text-gray-500 mt-4"></div>
+      </div>
+    </div>
+
+    <!-- エクスポート: 共有された科目コードをテキストとして保存 -->
+    <div id="exportTab" class="tab-content hidden">
+      <div class="card">
+        <h2 class="text-xl font-semibold text-gray-700 mb-2">エクスポート</h2>
+        <p class="text-sm text-gray-600 mb-3">共有された科目コードをテキストとして出力します。</p>
+        <button id="exportCodesBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md">科目をエクスポート</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { parseShareParams, getPrefixLabel } from './js/share.js';
+    import { renderGraduationStatus } from './js/render.js';
+    import { loadExternalRequirements, getRequirements } from './js/requirements.js';
+    import { setupTabs } from './js/tabs.js';
+
+    const titleEl = document.getElementById('shareTitle');
+    const commentEl = document.getElementById('shareComment');
+    const groupsWrap = document.getElementById('groupsWrap');
+    const exportCodesBtn = document.getElementById('exportCodesBtn');
+    const noticeEl = document.getElementById('shareNotice');
+
+    function esc(s){
+      const d = document.createElement('div');
+      d.textContent = s; return d.textContent;
+    }
+
+    const { codes, title, comment } = parseShareParams();
+    titleEl.textContent = title;
+    commentEl.textContent = comment;
+
+    async function main(){
+      setupTabs();
+      await loadExternalRequirements();
+      let map = new Map();
+      try {
+        const res = await fetch('./assets/courses.json');
+        if (res.ok) {
+          const arr = await res.json();
+          for (const c of arr) map.set(String(c.code || c.id), c);
+        }
+      } catch(_){}
+      if (!codes.length){
+        noticeEl.textContent = '共有データが見つかりません。URLが不正か有効期限が切れている可能性があります。';
+        return;
+      }
+      // Build selectedCourses for status
+      const selectedCourses = [];
+      // Group by prefix label
+      const groups = new Map();
+      for (const code of codes){
+        const label = getPrefixLabel(code);
+        if (!groups.has(label)) groups.set(label, []);
+        const c = map.get(String(code));
+        if (c) {
+          groups.get(label).push({ name: c.name, code: c.code, credits: c.credits });
+          selectedCourses.push(c);
+        } else {
+          groups.get(label).push({ name: '', code: String(code), credits: 0 });
+          selectedCourses.push({ id: String(code), code: String(code), name: '', description: '', credits: 0 });
+        }
+      }
+      // Render graduation status
+      renderGraduationStatus(selectedCourses, getRequirements());
+      // Render groups
+      for (const [label, items] of groups){
+        const card = document.createElement('div');
+        card.className = 'p-4 border border-gray-200 rounded-lg bg-white shadow-sm';
+        const h = document.createElement('div');
+        h.className = 'font-semibold text-gray-800 mb-2';
+        h.textContent = `${label}（${items.length}件）`;
+        card.appendChild(h);
+        const ul = document.createElement('ul');
+        ul.className = 'space-y-1';
+        for (const it of items){
+          const li = document.createElement('li');
+          li.className = 'text-sm text-gray-800';
+          const name = it.name || '(名称未設定)';
+          li.textContent = `${name}（${it.code}・${it.credits ?? 0}単位）`;
+          ul.appendChild(li);
+        }
+        card.appendChild(ul);
+        groupsWrap.appendChild(card);
+      }
+      // Export button
+      exportCodesBtn.addEventListener('click', () => {
+        const txt = codes.join('\n');
+        const blob = new Blob([txt], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'selected_course_codes.txt'; a.click();
+        URL.revokeObjectURL(url);
+      });
+      if (map.size === 0) {
+        noticeEl.textContent = '講義名を表示するためのデータが読み込めませんでした。科目コードのみを表示しています。';
+      }
+    }
+    main();
+  </script>
+</body>
+</html>

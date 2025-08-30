@@ -1,0 +1,206 @@
+{
+  "version": "1.0.0",
+  "description": "2025 1期生用卒業用件",
+  "exclusionPrefixes": [
+    "OPT"
+  ],
+  "totalCreditsRequired": 124,
+  "categories": [
+    {
+      "id": "introductory",
+      "name": "導入科目",
+      "creditsRequired": 14,
+      "identification": {
+        "startsWith": [
+          "INT-"
+        ]
+      }
+    },
+    {
+      "id": "basic",
+      "name": "基礎科目",
+      "creditsRequired": 12,
+      "allSubCategoriesMustBeMet": true,
+      "subCategories": [
+        {
+          "id": "basicMath",
+          "name": "数理",
+          "creditsRequired": 2,
+          "identification": {
+            "courseCodes": [
+              "BSC-1-B1-0204-004",
+              "BSC-1-B1-1030-005",
+              "BSC-1-B1-0204-006"
+            ]
+          }
+        },
+        {
+          "id": "basicInfo",
+          "name": "情報",
+          "creditsRequired": 2,
+          "identification": {
+            "courseCodes": [
+              "BSC-1-B1-1030-001",
+              "BSC-1-B1-0204-002",
+              "BSC-1-B1-0204-003"
+            ]
+          }
+        },
+        {
+          "id": "basicCultureThought",
+          "name": "文化・思想",
+          "creditsRequired": 2,
+          "identification": {
+            "courseCodes": [
+              "BSC-1-B1-1030-007",
+              "BSC-1-B1-1030-008",
+              "BSC-1-B1-0204-009"
+            ]
+          }
+        },
+        {
+          "id": "basicSocietyNetwork",
+          "name": "社会・ネットワーク",
+          "creditsRequired": 2,
+          "identification": {
+            "courseCodes": [
+              "BSC-1-B1-1030-010",
+              "BSC-1-B1-0204-011",
+              "BSC-1-B1-1030-012"
+            ]
+          }
+        },
+        {
+          "id": "basicEconomyMarket",
+          "name": "経済・マーケット",
+          "creditsRequired": 2,
+          "identification": {
+            "courseCodes": [
+              "BSC-1-B1-0204-013",
+              "BSC-1-B1-0204-014",
+              "BSC-1-B1-0204-015"
+            ]
+          }
+        },
+        {
+          "id": "basicMultilingualITComm",
+          "name": "多言語ITコミュニケーション",
+          "creditsRequired": 2,
+          "identification": {
+            "courseCodes": [
+              "BSC-1-A2-1234-016"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "development",
+      "name": "展開科目",
+      "creditsRequired": 74,
+      "notes": "社会接続科目は最大10単位まで算入",
+      "isGeneralDevelopmentCategory": true,
+      "subChecks": [
+        {
+          "id": "devCombinedBasicLiteracy",
+          "name": "基盤リテラシー科目（基礎科目と合わせて）",
+          "creditsRequired": 8,
+          "description": "基礎(数理,情報) + 展開(INF-,MTH-など)",
+          "identification": {
+            "startsWith": [
+              "INF-",
+              "MTH-"
+            ]
+          },
+          "includeBasicCategoryIds": [
+            "basicMath",
+            "basicInfo"
+          ]
+        },
+        {
+          "id": "devCombinedMultiInfoComp",
+          "name": "多言語情報理解科目（基礎科目と合わせて）",
+          "creditsRequired": 8,
+          "description": "基礎(多言語IT) + 展開(LAN-など)",
+          "identification": {
+            "startsWith": [
+              "LAN-"
+            ]
+          },
+          "includeBasicCategoryIds": [
+            "basicMultilingualITComm"
+          ]
+        },
+        {
+          "id": "devCombinedWorldUnderstanding",
+          "name": "世界理解科目（基礎科目と合わせて）",
+          "creditsRequired": 26,
+          "description": "基礎(文化思想,社会NW,経済M) + 展開(HUM-,SOC-,ECON-など)",
+          "identification": {
+            "startsWith": [
+              "HUM-",
+              "SOC-",
+              "ECON-",
+              "DIGI-"
+            ]
+          },
+          "includeBasicCategoryIds": [
+            "basicCultureThought",
+            "basicSocietyNetwork",
+            "basicEconomyMarket"
+          ],
+          "subSubChecks": [
+            {
+              "id": "devDigitalIndustry",
+              "name": "デジタル産業（世界理解科目内）",
+              "creditsRequired": 2,
+              "identification": {
+                "subjectCategoryIdsFromRaw": [
+                  "digital_industry"
+                ],
+                "nameIncludes": [
+                  "IT産業史",
+                  "マンガ産業史",
+                  "アニメ産業史",
+                  "日本のゲーム産業史"
+                ],
+                "startsWith": [
+                  "DIGI-"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "devSocialConnection",
+          "name": "社会接続科目",
+          "creditsMax": 10,
+          "identification": {
+            "subjectCategoryIdsFromRaw": [
+              "social_connection"
+            ],
+            "nameIncludes": [
+              "社会接続"
+            ],
+            "startsWith": [
+              "CAR-"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "projectPractice",
+      "name": "プロジェクト実践",
+      "creditsRequired": 4,
+      "identification": {
+        "startsWith": [
+          "PJT-"
+        ],
+        "nameIncludes": [
+          "プロジェクト実践"
+        ]
+      }
+    }
+  ]
+}
